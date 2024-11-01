@@ -7,3 +7,4 @@ This project is currently under development.
 - **Incident Response Email Templates:** Use customizable templates to streamline communication with internal and external users about phishing incidents.<br>
 - **Suspicious Sign-In Monitoring:** Check phishing victims for recent suspicious sign-ins to assess potential account compromise.<br>
 - **Comprehensive Action Logging:** Ensure full transparency with detailed logs of all actions performed by this tool for auditing and accountability.<br>
+- **Multi-Instance Google Workspace Processing:** Seamlessly manage multiple Google Workspace environments and perform bulk email deletions across all instances with a single script.<br>
