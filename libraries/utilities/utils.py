@@ -11,7 +11,7 @@ def get_config_file_path() -> str:
     """
     # Go back 3 directories
     base_dir = dirname(dirname(dirname(abspath(__file__))))
-    config_path = join(base_dir, 'configuration', 'config.yaml')
+    config_path = join(base_dir, 'config.yaml')
     return abspath(config_path)
 
 def load_yaml_file_to_dict(filename: str) -> dict:
