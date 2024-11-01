@@ -12,6 +12,9 @@ class Google:
         :param affected_user: The email of the user to delete the message in their inbox
         :return: True if the email was deleted from the affected users inbox
         """
+        gmail_service = self.auth_handler.get_service_for_user(affected_user, "gmail")
+        gmail_service.users().messages().delete(userId=affected_user, id=message_id).execute()
+        return True
 
     def bulk_delete_emails(self, message_ids: list, affected_user: str) -> bool:
         """
