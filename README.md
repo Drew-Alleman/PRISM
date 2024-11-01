@@ -15,12 +15,12 @@ These streamlined modules are designed to efficiently mitigate phishing threats 
 ```python
 
 google_client = Google()
-reporter = Reporter()
 
-log_data = load_email_log_search_export('gmail_log.csv')
-reporter.generate_report("report.pdf", log_data)
+log_parser = GoogleLogParser()
+log_parser.read_export(r"C:\Users\DrewQ\Desktop\prism\export.csv.csv")
+log_parser.generate_report("report.pdf")
 
-for user in log_data:
+for user in log_parser.get_entries():
     # Attempt to delete the email
     if not google_client.delete_email(user.message_id, user.email):
         print(f"[-] Failed to delete email with ID {user.message_id} in {user.email}'s inbox.")
