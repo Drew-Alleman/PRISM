@@ -1,0 +1,12 @@
+google_service_accounts:
+  - name: GoogleWorkspace1
+    secret_file: /path/to/service_account1.json
+    domains:
+      - example.com
+      - anotherdomain.example.com
+
+  - name: GoogleWorkspace2
+    secret_file: /path/to/service_account2.json
+    domains:
+      - example.org
+      - example.net
