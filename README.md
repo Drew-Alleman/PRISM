@@ -1,5 +1,27 @@
-# PRISM - Phishing Reporting and Incident Security Mitigation
-This project is currently under development. 
+# PRISM - Phishing Reporting and Incident Security Mitigation 
+*This project is currently under development.*
+
+These streamlined modules are designed to efficiently mitigate phishing threats across *multiple* Google Workspaces by automaticlly. The system loads and processes data from Google Email Log Search exports, enabling quick detection, analysis, and resolution.
+
+## Example
+```python
+
+google_client = Google()
+reporter = Reporter()
+
+log_data = load_email_log_search_export('gmail_log.csv')
+reporter.generate_report("report.pdf", log_data)
+
+for user in log_data:
+    # Attempt to delete the email
+    if not google_client.delete_email(user.message_id, user.email):
+        print(f"[-] Failed to delete email with ID {user.message_id} in {user.email}'s inbox.")
+    
+    # Check if the user opened the email and suspend if necessary
+    if user.opened_email:
+        if not google_client.suspend(user.email):
+            print(f"[-] Failed to suspend user: {user.email}")
+```
 
 ## Features
 - **Automated Graphs and Summaries:** Generate insightful graphs and summaries of the provided phishing attack based on exports from Google’s Email Log Search tool. <br>
