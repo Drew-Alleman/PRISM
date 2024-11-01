@@ -33,7 +33,13 @@ for user in log_data:
 ```
 
 ## Configuration
-The Google class is able to automaticlly detemerine what authentication to use, all we need to do is fill out `/configurations/config.yaml`. PRISM utilize service accounts to authenticate with Google.
+The Google Python Class is able to automatically determine what authentication to use. All we need to do is fill out `/configurations/config.yaml` with the service account information.
+| Field          | Description                                                                                                 | Example Value                      |
+|----------------|-------------------------------------------------------------------------------------------------------------|------------------------------------|
+| `name`         | A friendly identifier for the Google Workspace instance, used for distinguishing accounts in logs and reports. | `ExampleWorkspace1`               |
+| `secret_file`  | The path to the JSON credentials file for the service account, allowing PRISM to authenticate with Google.  | `/path/to/service_account1.json`   |
+| `domains`      | A list of domains managed by this workspace. PRISM will use this service account for actions on any of these domains. | `example.com`, `store.example.com` |
+
 ```yaml
 google_service_accounts:
   - name: ExampleWorkspace1
