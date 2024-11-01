@@ -17,18 +17,14 @@ These streamlined modules are designed to efficiently mitigate phishing threats 
 google_client = Google()
 
 log_parser = GoogleLogParser()
-log_parser.read_export(r"C:\Users\DrewQ\Desktop\prism\export.csv.csv")
+log_parser.read_export(r"export.csv")
 log_parser.generate_report("report.pdf")
 
 for user in log_parser.get_entries():
-    # Attempt to delete the email
-    if not google_client.delete_email(user.message_id, user.email):
-        print(f"[-] Failed to delete email with ID {user.message_id} in {user.email}'s inbox.")
-    
-    # Check if the user opened the email and suspend if necessary
+    google_client.delete_email(user.message_id, user.email)
+
     if user.opened_email:
-        if not google_client.suspend(user.email):
-            print(f"[-] Failed to suspend user: {user.email}")
+        google_client.suspend(user.email)
 ```
 
 ## Configuration
