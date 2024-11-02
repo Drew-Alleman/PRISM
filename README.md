@@ -1,7 +1,7 @@
 # PRISM - Phishing Reporting and Incident Security Mitigation 
 *This project is currently under development.*
 
-These streamlined modules are designed to efficiently mitigate phishing threats across *multiple* Google Workspaces automatically. The system loads and processes data from Google Email Log Search exports, enabling quick detection, analysis, and resolution. Azure support will come in the future. 
+These streamlined modules and scripts are designed to efficiently mitigate phishing threats across *multiple* Google Workspaces automatically. The system loads and processes data from Google Email Log Search exports, enabling quick detection, analysis, and resolution. Azure support will come in the future. 
 
 ## Features
 - **Automated Graphs and Summaries:** Generate insightful graphs and summaries of the provided phishing attack based on exports from Google’s Email Log Search tool. <br>
@@ -11,7 +11,12 @@ These streamlined modules are designed to efficiently mitigate phishing threats 
 - **Comprehensive Action Logging:** Ensure full transparency with detailed logs of all actions performed by this tool for auditing and accountability.<br>
 - **Multi-Instance Google Workspace Processing:** Seamlessly manage multiple Google Workspace environments and perform bulk email deletions across all instances with a single script.<br>
 
-## Example
+## Generating a Report Based on The Export from Google’s Email Log Search tool
+```
+python .\gmailLogReporter.py --docx 11-2-24-report.docx --logfile .\logSearch-11-2-2024.csv
+```
+
+## Utilizing the Coding Module Example
 ```python
 
 google_client = Google()
