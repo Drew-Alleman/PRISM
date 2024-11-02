@@ -20,10 +20,7 @@ python .\gmailLogReporter.py --docx 11-2-24-report.docx --logfile .\logSearch-11
 ```python
 
 google_client = Google()
-
 log_parser = GoogleLogParser()
-log_parser.read_export(r"export.csv")
-log_parser.generate_report("report.pdf")
 
 for user in log_parser.get_entries():
     google_client.delete_email(user.message_id, user.email)
