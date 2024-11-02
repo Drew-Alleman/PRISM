@@ -20,6 +20,15 @@ class GoogleLogParser:
 
         return self.log_entries
     
+    def read_exports(self, filenames: list[str]) -> list:
+        """
+        Reads the CSV files and populates log entries with EmailLogEntry instances.
+        :param filenamse: The Gmail Log search files to read
+        """
+        for filename in filenames:
+            self.read_export(filename)
+        return self.log_entries
+    
     def get_entries(self) -> list[EmailLogEntry]:
         """ 
         returns log entires loaded from GoogleLogParser.read_export()

@@ -38,7 +38,43 @@ class EmailLogEntry:
         """ 
         :return: True if the email was marked as spam in the user inbox
         """
-        return self.event_target in ["INTERNAL_SERVER", "GMAIL_SPAM"]
+        return self.event_status == "Marked spam"
+    
+    @property
+    def was_email_quarantined(self) -> bool:
+        """
+        :return: True if the email was Quarantined by Google
+        """
+        return self.event_status == "Quarantined"
+    
+    @property
+    def was_email_bounced(self) -> bool:
+        """
+        :return: True if the email was bounced
+
+        The message bounced because of issues with the email account. Issues can include: your IP address is blocked, 
+        your account reached sending or receiving limits, or the message violates a compliance or routing policy rule. 
+
+        """
+        return self.event_status == "BOUNCED"
+
+    @property
+    def was_email_viewed(self) -> bool:
+        """
+        :return: True if the email was bounced
+
+        The message bounced because of issues with the email account. Issues can include: your IP address is blocked, 
+        your account reached sending or receiving limits, or the message violates a compliance or routing policy rule. 
+
+        """
+        return self.event_status == "VIEWED"
+    
+    @property
+    def was_email_delivered(self) -> bool:
+        """
+        :return: True if the email succesfully landed in the users inbox
+        """
+        return self.event_status == "DELIVERED"
     
     def does_email_subject_match_regex(self, regex_str: str) -> bool:
         """ Checks if the regex pattern matches the email subject

@@ -46,4 +46,17 @@ def get_domain_from_email(email: str) -> str:
     :param email: the email to fetch the domain name from
     :return: the domain name with no @ symbol in front
     """
-    return email.split("@")[0]
+    return email.split("@")[1]
+
+def get_owned_domains() -> list:
+    """ Gatheres all domains from `config.yaml`
+    :return: a list of domain names that are managed by the user
+    """
+    config_yaml = load_yaml_file_to_dict(get_config_file_path())
+    domains = []
+    for service_account in config_yaml.get("google_service_accounts"):
+        google_domains = service_account.get("domains")
+        if not google_domains:
+            continue
+        domains.extend(google_domains)
+    return domains
