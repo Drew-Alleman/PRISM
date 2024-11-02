@@ -87,14 +87,6 @@ class Reporter:
         self.quarantined = sum(1 for status in processed_users.values() if status == "quarantined")
         self.delivered = sum(1 for status in processed_users.values() if status == "delivered")
         self.total_emails = len(processed_users)
-
-        self.quarantined = 10
-        self.total_emails = 244
-        self.bounced = 5
-        self.viewed = 52
-        self.delivered = 177
-        self.emails_sent_to_external_domains = 32
-        
         self.emails_sent_to_external_domains = len(external_recipients)
 
     def __generate_docx(self, filename: str) -> None:
