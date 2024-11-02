@@ -21,6 +21,7 @@ python .\gmailLogReporter.py --docx 11-2-24-report.docx --logfile .\logSearch-11
 
 google_client = Google()
 log_parser = GoogleLogParser()
+log_parser.read_exports(["export1.csv", "export2.csv"])
 
 for user in log_parser.get_entries():
     google_client.delete_email(user.message_id, user.email)
