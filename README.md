@@ -54,3 +54,34 @@ google_service_accounts:
       - docs.github.com
 ```
 
+## Setting up the Service Account
+### Creating a new Project
+Log in to your Google Workspace Admin account and navigate to the Google Cloud Console. Click on the "Select a project" button in the top left corner, then choose "New Project" to create a new one. Feel free to name it anything you like.
+![image](https://github.com/user-attachments/assets/7b0db779-b36e-489c-9206-2096a235d0e8)
+
+### Enabling the Needed API's
+Now We need to enable the GMAIL and Admin API to manage emails and users.
+![image](https://github.com/user-attachments/assets/ac078bfc-b43c-4822-a771-6ee7d613b3b3)
+![image](https://github.com/user-attachments/assets/139a51af-b6b1-4b6b-b3ad-83d5df6699a8)
+![image](https://github.com/user-attachments/assets/88e2b8fa-8130-4238-8a3b-309e9abacddd)
+![image](https://github.com/user-attachments/assets/49d2b98f-d192-4650-be11-f046ab950e18)
+
+## Generating the JSON Secret File
+Now we need to generate the JSON secret file to allow PRISM to authenticate to Google.
+![image](https://github.com/user-attachments/assets/46e7cd4d-538f-48f6-b08d-3b13ca85599e)
+![image](https://github.com/user-attachments/assets/21d144e3-3f68-41da-8f55-b874af920a72)
+![image](https://github.com/user-attachments/assets/eb4d7366-e54e-4a85-b860-3b9597c4cd1e)
+![image](https://github.com/user-attachments/assets/6f4bc577-9abb-40ac-9192-adbed0c3d08f)
+![image](https://github.com/user-attachments/assets/e2a1ba08-9b14-4264-94c4-8094cc3d20da)
+![image](https://github.com/user-attachments/assets/475dc088-c8b1-4568-aab8-913205ce4526)
+## Configuring the Scopes and Delegation
+![image](https://github.com/user-attachments/assets/57196a6a-ef6e-41c7-bbf1-b992c4fd8a1c)
+![image](https://github.com/user-attachments/assets/b35902a2-c6fb-430a-b1a7-129ad13f20d9)
+![image](https://github.com/user-attachments/assets/332bdb35-d05c-4dcc-a14a-0db89d948393)
+
+Now we need to paste the client ID we copied from the cloud console and we need to input the following scopes
+- https://www.googleapis.com/auth/admin.directory.user
+- https://mail.google.com/
+
+![image](https://github.com/user-attachments/assets/e38ba6e9-0386-4608-bae9-c26fefa228ac)
+
