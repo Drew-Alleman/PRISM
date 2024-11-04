@@ -28,7 +28,23 @@ class GoogleLogParser:
         for filename in filenames:
             self.read_export(filename)
         return self.log_entries
-    
+
+    def stabilize(self) -> list[EmailLogEntry]:
+        """Removes duplicate lines from `self.log_entries`. A duplicate line
+        is defined as an entry with the same message ID and recipient address.
+        
+        :return: A list of unique EmailLsogEntry objects based on message ID and recipient address.
+        """
+        unique_entries = []
+        seen_entries = set()
+        for entry in self.log_entries:
+            if (entry.message_id, entry.recipient_address) not in seen_entries:
+                unique_entries.append(entry)
+                seen_entries.add((entry.message_id, entry.recipient_address))
+        
+        return unique_entries
+
+
     def get_entries(self) -> list[EmailLogEntry]:
         """ 
         returns log entires loaded from GoogleLogParser.read_export()
@@ -36,3 +52,4 @@ class GoogleLogParser:
         :return: a list of EmailLogEntry's
         """
         return self.log_entries
+    

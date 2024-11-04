@@ -10,7 +10,6 @@ display_logo(SCRIPT_NAME, VERSION)
 LOG_PARSER = GoogleLogParser()
 REPORTER = Reporter()
 
-
 def main():
     parser = ArgumentParser(description="PRISM - Generate a detailed report based on a Google Log Search Export file.")
     parser.add_argument(

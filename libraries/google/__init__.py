@@ -1,8 +1,47 @@
 from libraries.google.authentication import GoogleAuthenticationHandler
+from googleapiclient.errors import HttpError
+
+class GoogleException(Exception):
+    pass
+
+class FailedToFindInternalID(GoogleException):
+    def __init__(self, message_id: str, affected_user: str):
+        self.message = f"Failed to find the internal message ID from the provided id: '{message_id}' for the user {affected_user}"
+        super().__init__(self.message)
+
+class DelegationDeniedException(GoogleException):
+    def __init__(self, affected_user: str):
+        self.message = f"Delegation denied for the user {affected_user}. Is this an Admin Users? Please check user permissions."
+        super().__init__(self.message)
 
 class Google:
     def __init__(self):
         self.auth_handler = GoogleAuthenticationHandler()
+
+    def get_message_id_from_export_id(self, message_id: str, affected_user: str) -> str:
+        """ Fetches the internal message ID from the provided id of the email in the Google
+        Log Search export. The message_id from the `EmailLogEntry` class does not
+        work with the google gmail SDK. 
+        :param message_id: The message id from the export to fetch
+        :param affected_user: The user the message belongs to
+        :return: the internal ID that works with the Google SDK
+        :raises FailedToFindInternalID: If no ID was found
+        :raises DelegationDeniedException: If delegation is denied for the user
+        """
+        try:
+            gmail_service = self.auth_handler.get_service_for_user(affected_user, "gmail")
+            response = gmail_service.users().messages().list(
+                userId=affected_user,
+                q=f'rfc822msgid:"{message_id}"'
+            ).execute()
+            if 'messages' in response:
+                return response['messages'][0]['id']
+            raise FailedToFindInternalID(message_id, affected_user)
+        except HttpError as error:
+            if error.resp.status == 403 and 'Delegation denied' in error.content.decode():
+                raise DelegationDeniedException(affected_user) from error
+            else:
+                raise
 
     def delete_email(self, message_id: str, affected_user: str) -> bool:
         """
@@ -12,15 +51,10 @@ class Google:
         :param affected_user: The email of the user to delete the message in their inbox
         :return: True if the email was deleted from the affected users inbox
         """
+        internal_id = self.get_message_id_from_export_id(message_id, affected_user)
         gmail_service = self.auth_handler.get_service_for_user(affected_user, "gmail")
-        response = gmail_service.users().messages().list(
-            userId=affected_user,
-            q=f'rfc822msgid:"{message_id}"'
-        ).execute()
-        if 'messages' in response:
-            internal_id = response['messages'][0]['id']
-            gmail_service.users().messages().delete(userId=affected_user, id=internal_id).execute()
-            return True
+        gmail_service.users().messages().delete(userId=affected_user, id=internal_id).execute()
+        return True
     
     def bulk_delete_emails(self, message_ids: list, affected_user: str) -> bool:
         """
@@ -43,10 +77,11 @@ class Google:
         :param affected_user: The email of the user whose message is being quarantined.
         :return: True if the email was successfully quarantined.
         """
+        internal_id = self.get_message_id_from_export_id(message_id, affected_user)
         gmail_service = self.auth_handler.get_service_for_user(affected_user, "gmail")
         gmail_service.users().messages().modify(
             userId=affected_user,
-            id=message_id, 
+            id=internal_id,
             body={'removeLabelIds': ['INBOX'], 'addLabelIds': ['SPAM']}
         ).execute()
         return True

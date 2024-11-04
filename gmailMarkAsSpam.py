@@ -10,7 +10,7 @@ from libraries.google import Google, FailedToFindInternalID, DelegationDeniedExc
 from argparse import ArgumentParser
 
 VERSION = "dev 0.0.0"
-SCRIPT_NAME = "Google Email Deleter"
+SCRIPT_NAME = "Mark All Emails As Spam"
 
 display_logo(SCRIPT_NAME, VERSION)
 
@@ -27,19 +27,20 @@ except NoConfigurationsLoaded as e:
         critical=True
     )
 
-def delete_email(entry):
-    """Attempts to delete an email and logs the result."""
-    log_text = f"email: {entry.message_id} from {entry.recipient_address}"
+def mark_email_as_spam(entry):
+    """Attempts to mark an email as spam and logs the result."""
+    log_text = f"message: {entry.message_id} from {entry.recipient_address}"
     try:
-        if GOOGLE.v(entry.message_id, entry.recipient_address):
-            logger.info(f"Deleted {log_text}")
+        if GOOGLE.mark_email_as_spam(entry.message_id, entry.recipient_address):
+            logger.info(f"Marked {log_text} as spam") 
+            print(f"[+] Marked {log_text} as spam")
         else:
-            logger.error(f"Failed to delete {log_text}")
+            logger.error(f"Failed to mark {log_text} as spam")
     except (FailedToFindInternalID, DelegationDeniedException) as e:
         handle_exception(e, e.message)
 
-def delete_all_emails(logfile: str):
-    """Deletes all emails listed in the provided log file using multithreading."""
+def mark_all_emails_as_spam(logfile: str):
+    """Marks all emails as spam listed in the provided log file using multithreading."""
     try:
         LOG_PARSER.read_export(logfile)
         entries = LOG_PARSER.get_entries()
@@ -50,11 +51,11 @@ def delete_all_emails(logfile: str):
         handle_exception(e, "Log file not found. Please check the file path.", critical=True)
 
     for entry in entries:
-        delete_email(entry)
+        mark_email_as_spam(entry)
     
 def main():
-    """Main function to parse arguments and initiate the delete_all_emails process."""
-    parser = ArgumentParser(description="PRISM - Deletes all emails in the provided Google Email Log Search exports.")
+    """Main function to parse arguments and initiate the mark_all_emails_as_spam process."""
+    parser = ArgumentParser(description="PRISM - Mark all emails as spam from a  Google Email Log Search exports.")
     parser.add_argument(
         "--logfile", 
         type=str, 
@@ -62,8 +63,7 @@ def main():
         help="Path to the Google Log Search Export file to be processed."
     )
     args = parser.parse_args()
-
-    delete_all_emails(args.logfile)
+    mark_all_emails_as_spam(args.logfile)
 
 if __name__ == "__main__":
     main()

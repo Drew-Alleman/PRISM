@@ -128,4 +128,4 @@ class GoogleAuthenticationHandler:
             service = build(service_name, service_version, credentials=authentication_obj.get_credentials())
             self.loaded_services[cache_key] = service
         return service
-        
+
