@@ -18,6 +18,8 @@ These streamlined modules and scripts are designed to efficiently mitigate phish
 * Create documentation for each library
 * Finish README
 * Improve report generation
+* Django Website (idk)
+
 ## Generating a Report Based on The Export from Google’s Email Log Search tool
 ```
 python .\gmailLogReporter.py --docx 11-2-24-report.docx --logfile .\logSearch-11-2-2024.csv
