@@ -12,7 +12,8 @@ These streamlined modules and scripts are designed to efficiently mitigate phish
 - **Multi-Instance Google Workspace Processing:** Seamlessly manage multiple Google Workspace environments and perform bulk email deletions across all instances with a single script.<br>
 
 ## TODO
-* Finish Google() Class 
+* Finish Google() Class
+* Other Google Authentication methods
 * Build a framework for handling arguments and building the log_entries from the provided file
 * Create email sender class and build script to send warnings to recipents
 * Create documentation for each library
