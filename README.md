@@ -11,6 +11,13 @@ These streamlined modules and scripts are designed to efficiently mitigate phish
 - **Comprehensive Action Logging:** Ensure full transparency with detailed logs of all actions performed by this tool for auditing and accountability.<br>
 - **Multi-Instance Google Workspace Processing:** Seamlessly manage multiple Google Workspace environments and perform bulk email deletions across all instances with a single script.<br>
 
+## TODO
+* Finish Google() Class 
+* Build a framework for handling arguments and building the log_entries from the provided file
+* Create email sender class and build script to send warnings to recipents
+* Create documentation for each library
+* Finish README
+* Improve report generation
 ## Generating a Report Based on The Export from Google’s Email Log Search tool
 ```
 python .\gmailLogReporter.py --docx 11-2-24-report.docx --logfile .\logSearch-11-2-2024.csv
