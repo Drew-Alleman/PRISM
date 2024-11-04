@@ -19,6 +19,7 @@ These streamlined modules and scripts are designed to efficiently mitigate phish
 * Create documentation for each library
 * Finish README
 * Improve report generation
+* Azure Support
 * Django Website (idk)
 
 ## Generating a Report Based on The Export from Google’s Email Log Search tool
