@@ -13,14 +13,20 @@ class Google:
         :return: True if the email was deleted from the affected users inbox
         """
         gmail_service = self.auth_handler.get_service_for_user(affected_user, "gmail")
-        gmail_service.users().messages().delete(userId=affected_user, id=message_id).execute()
-        return True
+        response = gmail_service.users().messages().list(
+            userId=affected_user,
+            q=f'rfc822msgid:"{message_id}"'
+        ).execute()
+        if 'messages' in response:
+            internal_id = response['messages'][0]['id']
+            gmail_service.users().messages().delete(userId=affected_user, id=internal_id).execute()
+            return True
     
     def bulk_delete_emails(self, message_ids: list, affected_user: str) -> bool:
         """
         Deletes multiple emails from the specified user's inbox.
         
-        :param message_ids: List of email message IDs to delete.
+        :param message_ids: List of message ids to search in the users inbox.
         :param affected_user: The email of the user whose inbox is being cleaned.
         :return: True if all emails were successfully deleted.
         """

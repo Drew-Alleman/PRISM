@@ -4,7 +4,7 @@ from re import compile
 
 class EmailLogEntry:
     def __init__(self, row_as_dict: dict):
-        self.message_id = row_as_dict.get("Message ID")
+        self.message_id = row_as_dict.get("Message ID").strip()
         start_date = row_as_dict.get("Start date")
         end_date = row_as_dict.get("End date")
         self.end_date = datetime.strptime(end_date, "%Y/%m/%d %H:%M:%S %Z")

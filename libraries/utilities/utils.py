@@ -1,5 +1,7 @@
-from yaml import safe_load
+import sys
 from json import load
+from loguru import logger
+from yaml import safe_load
 from os.path import dirname, join, abspath
 
 
@@ -60,3 +62,13 @@ def get_owned_domains() -> list:
             continue
         domains.extend(google_domains)
     return domains
+
+
+def display_logo(script_name: str, version: str):
+    print(f"""
+ ____  ____  ___ ____  __  __ 
+|  _ \\|  _ \\|_ _/ ___||  \\/  |
+| |_) | |_) || |\\___ \\| |\\/| | Script:  {script_name}
+|  __/|  _ < | | ___) | |  | | Version: {version}
+|_|   |_| \\_\\___|____/|_|  |_| Github:  https://github.com/Drew-Alleman/PRISM     
+""")

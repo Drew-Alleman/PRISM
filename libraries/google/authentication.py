@@ -42,6 +42,7 @@ class GoogleAuthentication:
         self.name = data.get('name')
         self.secret = None
         self.scopes = data.get('scopes', [])
+        self.subject = data.get('subject', [])
         self.__check_secret_file()
 
     def __check_secret_file(self) -> None:
@@ -56,7 +57,7 @@ class GoogleAuthentication:
     def get_credentials(self):
         """ Fetches the service account credentials file from the provided file
         """
-        return service_account.Credentials.from_service_account_file(self.secret_file, scopes=self.scopes)
+        return service_account.Credentials.from_service_account_file(self.secret_file, scopes=self.scopes, subject=self.subject)
 
 
 class GoogleAuthenticationHandler:
@@ -120,12 +121,11 @@ class GoogleAuthenticationHandler:
 
         cache_key = f"{domain_name}-{service_name}-{service_version}"
 
-        # Use a lock to safely access and modify `loaded_services`
         with self.lock:
             if cache_key in self.loaded_services:
                 return self.loaded_services[cache_key]
 
             service = build(service_name, service_version, credentials=authentication_obj.get_credentials())
             self.loaded_services[cache_key] = service
-
+        return service
         

@@ -36,4 +36,3 @@ class GoogleLogParser:
         :return: a list of EmailLogEntry's
         """
         return self.log_entries
-
