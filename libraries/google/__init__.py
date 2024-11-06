@@ -32,6 +32,11 @@ class WeakPassword(GoogleException):
         self.message = f"Failed to modifiy {affected_user} password the provided one was too weak."
         super().__init__(self.message)
 
+class CantSuspendSelf(GoogleException):
+    def __init__(self, affected_user: str):
+        self.message = f"Failed to suspend: {affected_user}. This is the same user as the account performing API actions."
+        super().__init__(self.message)
+
 def handle_http_error(error: HttpError, user: str = None, function_name: str = None, message_id: str = None):
     """
     Handles HttpError and raises appropriate custom exceptions based on error content and status.
@@ -50,7 +55,8 @@ def handle_http_error(error: HttpError, user: str = None, function_name: str = N
     elif error.resp.status == 400:
         if 'Invalid Password' in error_content:
             raise WeakPassword(user)
-
+        if 'Admin cannot suspend self' in error_content:
+            raise CantSuspendSelf(user)
     elif error.resp.status == 404:
         raise FailedToFindInternalID(message_id, user) from error
     else:
@@ -156,10 +162,13 @@ class Google:
         :param user: The email of the user to modify
         :return: True if the `suspended` variable is modified
         """
-        admin_service = self.auth_handler.get_service_for_user(user, "admin", "directory_v1")
-        admin_service.users().update(userKey=user, body={'suspended': False}).execute()
-        return True
-    
+        try:
+            admin_service = self.auth_handler.get_service_for_user(user, "admin", "directory_v1")
+            admin_service.users().update(userKey=user, body={'suspended': value}).execute()
+            return True
+        except HttpError as error:
+            handle_http_error(error, user)
+            
     def suspend_user(self, user: str) -> bool:
         """ 
         Suspends the provided user in Google
