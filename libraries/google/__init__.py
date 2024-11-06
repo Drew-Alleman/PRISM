@@ -1,5 +1,6 @@
 from libraries.google.authentication import GoogleAuthenticationHandler
 from googleapiclient.errors import HttpError
+from google.auth.exceptions import RefreshError
 
 class GoogleException(Exception):
     pass
@@ -14,93 +15,151 @@ class DelegationDeniedException(GoogleException):
         self.message = f"Delegation denied for the user {affected_user}. Is this an Admin Users? Please check user permissions."
         super().__init__(self.message)
 
+class MissingScopeFromConfig(GoogleException):
+    def __init__(self, affected_user: str, function_name: str, e: Exception):
+        self.message = f"Failed to call {function_name} for {affected_user}. You are most likely missing a Google API scope in the `config.yaml`. Please refrence the README for more information about API scopes."
+        self.error = e
+        super().__init__(self.message)
+
+class MissingScopeFromClient(GoogleException):
+    def __init__(self, affected_user: str, function_name: str, e: Exception):
+        self.message = f"Failed to call {function_name} for {affected_user}. You are most likely forgetting to add the needed scope to the client. Link to Admin Setting: https://admin.google.com/u/3/ac/owl/domainwidedelegation"  
+        self.error = e
+        super().__init__(self.message)
+
+class WeakPassword(GoogleException):
+    def __init__(self, affected_user: str):
+        self.message = f"Failed to modifiy {affected_user} password the provided one was too weak."
+        super().__init__(self.message)
+
+def handle_http_error(error: HttpError, user: str = None, function_name: str = None, message_id: str = None):
+    """
+    Handles HttpError and raises appropriate custom exceptions based on error content and status.
+    
+    :param error: The HttpError encountered during API calls.
+    :param user: The user involved in the API call.
+    :param function_name: The function name where the error occurred.
+    :param message_id: The message ID related to the error, if applicable.
+    """
+    error_content = error.content.decode()
+    if error.resp.status == 403:
+        if 'Delegation denied' in error_content:
+            raise DelegationDeniedException(user) from error
+        elif 'Not Authorized' in error_content:
+            raise MissingScopeFromConfig(user, function_name, error) from error
+    elif error.resp.status == 400:
+        if 'Invalid Password' in error_content:
+            raise WeakPassword(user)
+
+    elif error.resp.status == 404:
+        raise FailedToFindInternalID(message_id, user) from error
+    else:
+        raise error
+
+def handle_google_error(error: Exception, user: str, function_name: str):
+    """ 
+    Handles a custom Google Exception and raises the appopriate custom exceptions based on error content and status.
+    :param error: The Google exception to handle.
+    :param user: The involved user in the API call.
+    :param function_name: The name of the function to call
+    """
+    if "Client is unauthorized to retrieve access tokens using this method" in str(error):
+        raise MissingScopeFromClient(user, function_name, error)
+
 class Google:
     def __init__(self):
         self.auth_handler = GoogleAuthenticationHandler()
 
-    def get_message_id_from_export_id(self, message_id: str, affected_user: str) -> str:
+    def get_message_id_from_export_id(self, message_id: str, user: str) -> str:
         """ Fetches the internal message ID from the provided id of the email in the Google
         Log Search export. The message_id from the `EmailLogEntry` class does not
         work with the google gmail SDK. 
         :param message_id: The message id from the export to fetch
-        :param affected_user: The user the message belongs to
+        :param user: The user the message belongs to
         :return: the internal ID that works with the Google SDK
         :raises FailedToFindInternalID: If no ID was found
         :raises DelegationDeniedException: If delegation is denied for the user
         """
         try:
-            gmail_service = self.auth_handler.get_service_for_user(affected_user, "gmail")
+            gmail_service = self.auth_handler.get_service_for_user(user, "gmail")
             response = gmail_service.users().messages().list(
-                userId=affected_user,
+                userId=user,
                 q=f'rfc822msgid:"{message_id}"'
             ).execute()
             if 'messages' in response:
                 return response['messages'][0]['id']
-            raise FailedToFindInternalID(message_id, affected_user)
+            raise FailedToFindInternalID(message_id, user)
         except HttpError as error:
-            if error.resp.status == 403 and 'Delegation denied' in error.content.decode():
-                raise DelegationDeniedException(affected_user) from error
-            else:
-                raise
-
-    def delete_email(self, message_id: str, affected_user: str) -> bool:
+            handle_http_error(error, user, "get_message_id_from_export_id")
+        except RefreshError as error:
+            handle_google_error(error, user, "reset_password")
+            
+    def delete_email(self, message_id: str, user: str) -> bool:
         """
         Deletes the provided email out of the users inbox
 
         :param message_id: The Email message ID to delete
-        :param affected_user: The email of the user to delete the message in their inbox
+        :param user: The email of the user to delete the message in their inbox
         :return: True if the email was deleted from the affected users inbox
         """
-        internal_id = self.get_message_id_from_export_id(message_id, affected_user)
-        gmail_service = self.auth_handler.get_service_for_user(affected_user, "gmail")
-        gmail_service.users().messages().delete(userId=affected_user, id=internal_id).execute()
+        internal_id = self.get_message_id_from_export_id(message_id, user)
+        gmail_service = self.auth_handler.get_service_for_user(user, "gmail")
+        gmail_service.users().messages().delete(userId=user, id=internal_id).execute()
         return True
     
-    def bulk_delete_emails(self, message_ids: list, affected_user: str) -> bool:
+    def bulk_delete_emails(self, message_ids: list, user: str) -> bool:
         """
         Deletes multiple emails from the specified user's inbox.
         
         :param message_ids: List of message ids to search in the users inbox.
-        :param affected_user: The email of the user whose inbox is being cleaned.
+        :param user: The email of the user whose inbox is being cleaned.
         :return: True if all emails were successfully deleted.
         """
         results = []
         for message_id in message_ids:
-            results.append(self.delete_email(message_id, affected_user))
+            results.append(self.delete_email(message_id, user))
         return all(results)
 
-    def mark_email_as_spam(self, message_id: str, affected_user: str) -> bool:
+    def mark_email_as_spam(self, message_id: str, user: str) -> bool:
         """
         Moves a specific email to a quarantine label/folder for the user.
         
         :param message_id: The Email message ID to quarantine.
-        :param affected_user: The email of the user whose message is being quarantined.
+        :param user: The email of the user whose message is being quarantined.
         :return: True if the email was successfully quarantined.
         """
-        internal_id = self.get_message_id_from_export_id(message_id, affected_user)
-        gmail_service = self.auth_handler.get_service_for_user(affected_user, "gmail")
+        internal_id = self.get_message_id_from_export_id(message_id, user)
+        gmail_service = self.auth_handler.get_service_for_user(user, "gmail")
         gmail_service.users().messages().modify(
-            userId=affected_user,
+            userId=user,
             id=internal_id,
             body={'removeLabelIds': ['INBOX'], 'addLabelIds': ['SPAM']}
         ).execute()
         return True
-    
 
-    def bulk_mark_email_as_spam(self, message_ids: list, affected_user: str) -> bool:
+    def bulk_mark_email_as_spam(self, message_ids: list, user: str) -> bool:
         """
         Moves a specific email to a quarantine label/folder for the user.
         
         :param message_ids: The Email message IDs to quarantine.
-        :param affected_user: The email of the user whose message is being quarantined.
+        :param user: The email of the user whose message is being quarantined.
         :return: True if the email was successfully quarantined.
         """
         results = []
         for message_id in message_ids:
-            results.append(self.mark_email_as_spam(message_id, affected_user))
+            results.append(self.mark_email_as_spam(message_id, user))
         return all(results)
 
-
+    def __modify_suspended(self, value: bool, user: str) -> bool:
+        """ Modifies the user attribute `suspended` and sets it to the provided value
+        :param value: The value to set the suspended
+        :param user: The email of the user to modify
+        :return: True if the `suspended` variable is modified
+        """
+        admin_service = self.auth_handler.get_service_for_user(user, "admin", "directory_v1")
+        admin_service.users().update(userKey=user, body={'suspended': False}).execute()
+        return True
+    
     def suspend_user(self, user: str) -> bool:
         """ 
         Suspends the provided user in Google
@@ -108,7 +167,8 @@ class Google:
         :param user: The email of the user to suspend
         :return: True if the user was suspended
         """
-
+        return self.__modify_suspended(True, user)
+    
     def unsuspend_user(self, user: str) -> bool:
         """ 
         Unsuspend the provided user in Google
@@ -116,6 +176,7 @@ class Google:
         :param user: The email of the user to unsuspend
         :return: True if the user was unsuspended
         """
+        return self.__modify_suspended(False, user)
 
     def get_suspicious_logins(self, user: str) -> list:
         """ 
@@ -124,6 +185,18 @@ class Google:
         :param user: The user to process
         :return: a list of `Login` objects
         """
+        admin_service = self.auth_handler.get_service_for_user(user, "admin", "directory_v1")
+        response = admin_service.activities().list(
+            userKey=user,
+            applicationName='login',
+            eventName='login_failure', 
+            filters='event_info.suspicious_event:true',  
+        ).execute()
+        suspicious_logins = []
+        if 'items' in response:
+            for event in response['items']:
+                print(event)
+        return suspicious_logins
 
     def reset_password(self, user: str, new_password: str, force_password_change: bool = False) -> bool:
         """ 
@@ -134,6 +207,20 @@ class Google:
         :param force_password_change: If set to False, the end-user will not be prompted to reset their password
         :return: True if the users password was successfully reset
         """
+        try:
+            admin_service = self.auth_handler.get_service_for_user(user, "admin", "directory_v1")
+            admin_service.users().update(
+                userKey=user,
+                body={
+                    'password': new_password,
+                    'changePasswordAtNextLogin': force_password_change
+                }
+            ).execute()
+            return True
+        except HttpError as error:
+            handle_http_error(error, user, "reset_password")
+        except RefreshError as error:
+            handle_google_error(error, user, "reset_password")
 
     def add_email_to_blacklist(self, email_address: str) -> bool:
         """
@@ -152,7 +239,7 @@ class Google:
     #     :return: True if the notification was successfully sent.
     #     """
 
-    # def assess_user_risk(self, user: str) -> int:
+    # def assess_user_risk(self, user: str, email_log) -> int:
     #     """
     #     Calculates a risk score for the specified user based on recent activity.
         
