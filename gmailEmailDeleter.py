@@ -14,6 +14,8 @@ SCRIPT_NAME = "Google Email Deleter"
 
 display_logo(SCRIPT_NAME, VERSION)
 
+logger.debug(f"Starting: gmailEmailDeleter.py version: {VERSION} ")
+
 LOG_PARSER = GoogleLogParser()
 
 try:
