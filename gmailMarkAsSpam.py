@@ -14,6 +14,8 @@ SCRIPT_NAME = "Mark All Emails As Spam"
 
 display_logo(SCRIPT_NAME, VERSION)
 
+logger.debug(f"Starting: gmailMarkAsSpam.py version: {VERSION} ")
+
 LOG_PARSER = GoogleLogParser()
 
 try:
@@ -33,7 +35,6 @@ def mark_email_as_spam(entry):
     try:
         if GOOGLE.mark_email_as_spam(entry.message_id, entry.recipient_address):
             logger.info(f"Marked {log_text} as spam") 
-            print(f"[+] Marked {log_text} as spam")
         else:
             logger.error(f"Failed to mark {log_text} as spam")
     except (FailedToFindInternalID, DelegationDeniedException) as e:
