@@ -33,7 +33,7 @@ def delete_email(entry):
     """Attempts to delete an email and logs the result."""
     log_text = f"email: {entry.message_id} from {entry.recipient_address}"
     try:
-        if GOOGLE.v(entry.message_id, entry.recipient_address):
+        if GOOGLE.delete_email(entry.message_id, entry.recipient_address):
             logger.info(f"Deleted {log_text}")
         else:
             logger.error(f"Failed to delete {log_text}")
