@@ -86,3 +86,66 @@ class EmailLogEntry:
         
         pattern = compile(regex_str)
         return bool(pattern.search(self.subject))
+
+
+class LoginEvent:
+    def __init__(self, event_data: dict):
+        self.kind = event_data.get("kind")
+        self.etag = event_data.get("etag")
+
+        # ID properties
+        self.time = None
+        self.unique_id = None
+        self.application_name = None
+        self.customer_id = None
+
+        id_properties = event_data.get("id")
+        if id_properties:
+            self.time = id_properties.get("time")
+            self.unique_id = id_properties.get("uniqueQualifier")
+            self.application_name = id_properties.get("applicationName")
+            self.customer_id = id_properties.get("customerId")
+
+        # Actor properties
+        self.username = None
+        self.profile_id = None
+        self.ip_address = None
+
+        actor_properties = event_data.get("actor")
+        if actor_properties:
+            self.username = actor_properties.get("email")
+            self.profile_id = actor_properties.get("profileId")
+
+        # IP address
+        self.ip_address = event_data.get("ipAddress")
+
+        # First event details only
+        self.event_type = None
+        self.event_name = None
+        self.is_suspicious = None
+        self.login_type = None
+        self.login_challenge_method = None
+
+        event_list = event_data.get("events")
+        if event_list and len(event_list) > 0:
+            first_event = event_list[0]
+            self.event_type = first_event.get("type")
+            self.event_name = first_event.get("name")
+
+            parameters = first_event.get("parameters", [])
+            for param in parameters:
+                param_name = param.get("name")
+                if param_name == "is_suspicious":
+                    self.is_suspicious = param.get("boolValue")
+                elif param_name == "login_type":
+                    self.login_type = param.get("value")
+                elif param_name == "login_challenge_method":
+                    self.login_challenge_method = param.get("multiValue", [None])[0]
+
+
+    def __repr__(self):
+        return (f"LoginEvent(kind={self.kind}, time={self.time}, unique_id={self.unique_id}, "
+                f"application_name={self.application_name}, customer_id={self.customer_id}, "
+                f"username={self.username}, profile_id={self.profile_id}, "
+                f"ip_address={self.ip_address}, event_type={self.event_type}, "
+                f"event_name={self.event_name}")
