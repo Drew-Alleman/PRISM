@@ -1,4 +1,5 @@
 from libraries.google.authentication import GoogleAuthenticationHandler
+from libraries.google.google_classes import LoginEvent
 from googleapiclient.errors import HttpError
 from google.auth.exceptions import RefreshError
 
@@ -23,7 +24,7 @@ class MissingScopeFromConfig(GoogleException):
 
 class MissingScopeFromClient(GoogleException):
     def __init__(self, affected_user: str, function_name: str, e: Exception):
-        self.message = f"Failed to call {function_name} for {affected_user}. You are most likely forgetting to add the needed scope to the client. Link to Admin Setting: https://admin.google.com/u/3/ac/owl/domainwidedelegation"  
+        self.message = f"Failed to call {function_name} for {affected_user}. You are most likely forgetting to add the needed scope to the client. Link to Admin Setting: https://admin.google.com/u/3/ac/owl/domainwidedelegation. Please read the permission section in the README."  
         self.error = e
         super().__init__(self.message)
 
@@ -47,11 +48,14 @@ def handle_http_error(error: HttpError, user: str = None, function_name: str = N
     :param message_id: The message ID related to the error, if applicable.
     """
     error_content = error.content.decode()
+    print(error_content)
     if error.resp.status == 403:
         if 'Delegation denied' in error_content:
             raise DelegationDeniedException(user) from error
-        elif 'Not Authorized' in error_content:
+        elif 'Request had insufficient authentication scopes.' in error_content:
             raise MissingScopeFromConfig(user, function_name, error) from error
+        elif 'Insufficient Permission':
+            raise MissingScopeFromClient(affected_user=user, function_name=function_name, e=error)
     elif error.resp.status == 400:
         if 'Invalid Password' in error_content:
             raise WeakPassword(user)
@@ -168,7 +172,8 @@ class Google:
             return True
         except HttpError as error:
             handle_http_error(error, user)
-            
+        except RefreshError as error:
+            handle_google_error(error, user, "__modify_suspended")
     def suspend_user(self, user: str) -> bool:
         """ 
         Suspends the provided user in Google
@@ -187,26 +192,59 @@ class Google:
         """
         return self.__modify_suspended(False, user)
 
+    def get_logins(self, user: str) -> list:
+        """ 
+        Fetches the provided users login events
+        :param user: The user to process
+        :return: a list of `Login` objects `is_suspicious` attribute is True
+        """
+        logins = []
+        try:
+            admin_service = self.auth_handler.get_service_for_user(user, "admin", "reports_v1")
+            response = admin_service.activities().list(
+                userKey='all',
+                applicationName='login',
+                eventName='login_failure',
+            ).execute()
+        except HttpError as error:
+            handle_http_error(error, user, "get_logins")
+        except RefreshError as error:
+            handle_google_error(error, user, "get_logins")
+        
+        page_token = None
+
+        while True:
+            response = admin_service.activities().list(
+                userKey='all',
+                applicationName='login',
+                pageToken=page_token
+            ).execute()
+            if 'items' in response:
+                for event in response['items']:
+                    if isinstance(event, dict):
+                        login_event = LoginEvent(event)
+                        if not login_event.is_suspicious:
+                            continue
+                        logins.append(login_event)
+            page_token = response.get('nextPageToken')
+            if not page_token:
+                break
+        return logins
+    
     def get_suspicious_logins(self, user: str) -> list:
         """ 
         Fetches the provided users suspicious logins
         
         :param user: The user to process
-        :return: a list of `Login` objects
+        :return: a list of `Login` objects whese the 
         """
-        admin_service = self.auth_handler.get_service_for_user(user, "admin", "directory_v1")
-        response = admin_service.activities().list(
-            userKey=user,
-            applicationName='login',
-            eventName='login_failure', 
-            filters='event_info.suspicious_event:true',  
-        ).execute()
-        suspicious_logins = []
-        if 'items' in response:
-            for event in response['items']:
-                print(event)
-        return suspicious_logins
-
+        suspicous_logins = []
+        logins = self.get_logins(user)
+        for login in logins:
+            if login.is_suspicous:
+                suspicous_logins.append(login)
+        return suspicous_logins
+    
     def reset_password(self, user: str, new_password: str, force_password_change: bool = False) -> bool:
         """ 
         Resets the provided users password
