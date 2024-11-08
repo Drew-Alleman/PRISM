@@ -10,7 +10,7 @@ from libraries.google import Google, FailedToFindInternalID, DelegationDeniedExc
 from argparse import ArgumentParser
 
 VERSION = "dev 0.0.0"
-SCRIPT_NAME = "Mark All Emails As Spam"
+SCRIPT_NAME = "Google: Mark All Emails As Spam"
 
 display_logo(SCRIPT_NAME, VERSION)
 
