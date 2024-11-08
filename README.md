@@ -31,7 +31,8 @@ These streamlined modules and scripts are designed to efficiently mitigate phish
 ```
 python .\gmailLogReporter.py --docx 11-2-24-report.docx --logfile .\logSearch-11-2-2024.csv
 ```
-![image](https://github.com/user-attachments/assets/95984b69-0876-4637-a24b-6ccf4634be7b)
+![image](https://github.com/user-attachments/assets/422eea27-23af-4d14-a145-b4f3a747963e)
+
 
 ## Utilizing the Coding Module Example
 ```python
