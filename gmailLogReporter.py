@@ -4,7 +4,7 @@ from libraries.utilities.utils import display_logo
 from argparse import ArgumentParser
 
 VERSION = "dev 0.0.0"
-SCRIPT_NAME = "Google Email Deleter"
+SCRIPT_NAME = "Google: Log Reporter"
 display_logo(SCRIPT_NAME, VERSION)
 
 LOG_PARSER = GoogleLogParser()
