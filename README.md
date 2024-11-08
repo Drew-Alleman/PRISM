@@ -13,7 +13,7 @@ These streamlined modules and scripts are designed to efficiently mitigate phish
 
 ## TODO
 ### Blue Team
-* Finish Google() Class
+* Finish `Google()` Class
 * Other Google Authentication methods
 * Build a framework for handling arguments and building the log_entries from the provided file
 * Create email sender class and build script to send warnings to recipents
