@@ -25,6 +25,10 @@ These streamlined modules and scripts are designed to efficiently mitigate phish
 
 ### Red Team
 * Google Drive file Stealer
+* Email Reader (idk)
+* Create user
+* Suspend/Unsuspend User
+* Delete User
 * Credential file permission enumerater
 
 ## Generating a Report Based on The Export from Google’s Email Log Search tool
