@@ -10,7 +10,7 @@ from libraries.google import Google, FailedToFindInternalID, DelegationDeniedExc
 from argparse import ArgumentParser
 
 VERSION = "dev 0.0.0"
-SCRIPT_NAME = "Google Email Deleter"
+SCRIPT_NAME = "Google: Email Deleter"
 
 display_logo(SCRIPT_NAME, VERSION)
 
