@@ -13,8 +13,7 @@ VERSION = "dev 0.0.0"
 SCRIPT_NAME = "Google: Email Deleter"
 
 display_logo(SCRIPT_NAME, VERSION)
-
-logger.debug(f"Starting: gmailEmailDeleter.py version: {VERSION} ")
+logger.debug(f"Starting: gmailEmailDeleter.py version: {VERSION}")
 
 LOG_PARSER = GoogleLogParser()
 
@@ -29,8 +28,12 @@ except NoConfigurationsLoaded as e:
         critical=True
     )
 
+
 def delete_email(entry):
-    """Attempts to delete an email and logs the result."""
+    """Attempts to delete an email and logs the result.
+
+    :param entry: The email log entry containing the message ID and recipient address.
+    """
     log_text = f"email: {entry.message_id} from {entry.recipient_address}"
     try:
         if GOOGLE.delete_email(entry.message_id, entry.recipient_address):
@@ -40,32 +43,46 @@ def delete_email(entry):
     except (FailedToFindInternalID, DelegationDeniedException) as e:
         handle_exception(e, e.message)
 
+
 def delete_all_emails(logfile: str):
-    """Deletes all emails listed in the provided log file using multithreading."""
+    """Deletes all emails listed in the provided log file.
+
+    :param logfile: Path to the Google Log Search Export file to be processed.
+    """
     try:
         LOG_PARSER.read_export(logfile)
         entries = LOG_PARSER.get_entries()
-        logger.debug(f"Removing duplicate entries with matching recipents and message ids from {logfile}. Current Loaded Entries: {len(entries)}")
+        logger.debug(f"Loaded {len(entries)} entries from {logfile}. Removing duplicates...")
         entries = LOG_PARSER.stabilize()
-        logger.debug(f"Stabilized, new count of entries: {len(entries)}")
+        logger.debug(f"Stabilized entries count: {len(entries)}")
     except FileNotFoundError as e:
         handle_exception(e, "Log file not found. Please check the file path.", critical=True)
+        return
 
     for entry in entries:
         delete_email(entry)
-    
-def main():
-    """Main function to parse arguments and initiate the delete_all_emails process."""
+
+
+def parse_arguments() -> ArgumentParser:
+    """Parses command-line arguments.
+
+    :return: Parsed command-line arguments.
+    """
     parser = ArgumentParser(description="PRISM - Deletes all emails in the provided Google Email Log Search exports.")
     parser.add_argument(
-        "--logfile", 
-        type=str, 
+        "--logfile",
+        type=str,
         required=True,
         help="Path to the Google Log Search Export file to be processed."
     )
-    args = parser.parse_args()
+    return parser.parse_args()
 
+
+def main():
+    """Main function to parse arguments and initiate the delete_all_emails process."""
+    args = parse_arguments()
     delete_all_emails(args.logfile)
+
 
 if __name__ == "__main__":
     main()

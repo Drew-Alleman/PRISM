@@ -4,7 +4,7 @@ from libraries.utilities.utils import display_logo
 from argparse import ArgumentParser
 
 VERSION = "dev 0.0.0"
-SCRIPT_NAME = "Google: Phishing Report Generator"
+SCRIPT_NAME = "Google Email Deleter"
 display_logo(SCRIPT_NAME, VERSION)
 
 LOG_PARSER = GoogleLogParser()
@@ -53,44 +53,36 @@ def wizard():
 
 
 
-def main():
-    parser = ArgumentParser(description="PRISM - Generate a detailed report based on a Google Log Search Export file.")
-    parser.add_argument(
-        "--docx", 
-        type=str, 
-        required=True,
-        help="Path to the DOCX file where the generated report will be saved."
-    )
-    parser.add_argument(
-        "--logfile", 
-        type=str, 
-        required=True,
-        help="Path to the Google Log Search Export file to be processed."
-    )
-    parser.add_argument(
-        "--author",
-        type=str,
-        help="Specify the author name for the report."
-    )
-    parser.add_argument(
-        "--title",
-        type=str,
-        default="Phishing Incident Report",
-        help="Custom title for the report."
-    )
-    parser.add_argument(
-        "--wizard",
-        default=False,
-        help="Prompts the end users questions to add additional information to the report.",
-        action="store_true"
+def parse_arguments() -> ArgumentParser:
+    """Parses command-line arguments.
 
-    )
-    args = parser.parse_args()
-    
+    :return: Parsed command-line arguments.
+    """
+    parser = ArgumentParser(description="PRISM - Generate a detailed report based on a Google Log Search Export file.")
+    parser.add_argument("--docx", type=str, required=True, help="Path to the DOCX file where the generated report will be saved.")
+    parser.add_argument("--logfile", type=str, required=True, help="Path to the Google Log Search Export file to be processed.")
+    parser.add_argument("--author", type=str, default=None, help="Specify the author name for the report.")
+    parser.add_argument("--title", type=str, default=None, help="Custom title for the report.")
+    parser.add_argument("--wizard", action="store_true", help="Prompts the end user with questions to add additional information to the report.")
+    return parser.parse_args()
+
+
+def main():
+    args = parse_arguments()
     LOG_PARSER.read_export(args.logfile)
+
+    custom_attributes = {}
     if args.wizard:
         custom_attributes = wizard()
+    else:
+        if args.author:
+            custom_attributes["author"] = args.author.strip()
+        if args.title:
+            custom_attributes["title"] = args.title.strip()
+
+    if custom_attributes:
         REPORTER.ingest_custom_attributes(custom_attributes)
+
     REPORTER.generate_report(args.docx, LOG_PARSER.get_entries())
 
 if __name__ == "__main__":
