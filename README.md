@@ -12,6 +12,7 @@ These streamlined modules and scripts are designed to efficiently mitigate phish
 - **Multi-Instance Google Workspace Processing:** Seamlessly manage multiple Google Workspace environments and perform bulk email deletions across all instances with a single script.<br>
 
 ## TODO
+### Blue Team
 * Finish Google() Class
 * Other Google Authentication methods
 * Build a framework for handling arguments and building the log_entries from the provided file
@@ -21,6 +22,10 @@ These streamlined modules and scripts are designed to efficiently mitigate phish
 * Improve report generation
 * Azure Support
 * Django Website (idk)
+
+### Red Team
+* Google Drive file Stealer
+* Credential file permission enumerater
 
 ## Generating a Report Based on The Export from Google’s Email Log Search tool
 ```
