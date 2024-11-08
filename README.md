@@ -29,7 +29,25 @@ These streamlined modules and scripts are designed to efficiently mitigate phish
 
 ## Generating a Report Based on The Export from Google’s Email Log Search tool
 ```
-python .\gmailLogReporter.py --docx 11-2-24-report.docx --logfile .\logSearch-11-2-2024.csv
+$ python .\gmailLogReporter.py --logfile .\LogSearchResults.csv --docx report.docx --wizard
+
+ ____  ____  ___ ____  __  __
+|  _ \|  _ \|_ _/ ___||  \/  |
+| |_) | |_) || |\___ \| |\/| | Script:  Google: Log Reporter
+|  __/|  _ < | | ___) | |  | | Version: dev 0.0.0
+|_|   |_| \_\___|____/|_|  |_| Github:  https://github.com/Drew-Alleman/PRISM
+
+Did apply any mitigations and would you like to display them in your report? (y/n): y
+Please provided a quick bullet point sentence (type 'stop' to quit) Implemented a recipient limit for outgoing emails to prevent mass distribution of malicious content.
+Please provided a quick bullet point sentence (type 'stop' to quit) Suspended accounts associated with detected suspicious login activity to contain potential threats.
+Please provided a quick bullet point sentence (type 'stop' to quit) Strengthened spam detection policies to identify and quarantine potentially harmful messages more effectively.
+Please provided a quick bullet point sentence (type 'stop' to quit) stop
+Would you like to add custom title? (y/n): n
+Would you like to add additional information about the author? (y/n): y
+Author Name: Drew Alleman
+Authors Job Title:
+Authors Email:
+Date of Report:
 ```
 ![image](https://github.com/user-attachments/assets/422eea27-23af-4d14-a145-b4f3a747963e)
 
